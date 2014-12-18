@@ -59,6 +59,7 @@ module Exchange
             http = Net::HTTP.new(uri.host, uri.port)
             http.open_timeout = timeout
             http.read_timeout = timeout
+            # TODO: investigate whether or not to account for 301 redirects
             result = http.get("#{uri.path}?#{uri.query}").body
           rescue SocketError
             raise APIError.new("Calling API #{url} produced a socket error")
@@ -73,6 +74,8 @@ module Exchange
               raise APIError.new("API #{url} was not reachable and returned #{e.message}. May be you requested a historic rate not provided")
             end
           end
+          # Handle empty responses
+          raise APIError.new("API #{url} returned a blank response") if result == ''
           result
         end
       
