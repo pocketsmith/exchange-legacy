@@ -53,10 +53,17 @@ module Exchange
         # @todo install a timeout for slow requests, but respect when loading large files
         #
         def load_url url, retries, retry_with
-          begin            
-            result = URI.parse(url).open.read
+          timeout = 15 # TODO: move this into Exchange.configuration
+          begin
+            uri = URI.parse(url)
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.open_timeout = timeout
+            http.read_timeout = timeout
+            result = http.get("#{uri.path}?#{uri.query}").body
           rescue SocketError
             raise APIError.new("Calling API #{url} produced a socket error")
+          rescue Timeout::Error => e
+            raise APIError.new("API #{url} took too long to respond and returned #{e.message}")
           rescue OpenURI::HTTPError => e
             retries -= 1
             if retries > 0
