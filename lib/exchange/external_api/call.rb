@@ -33,8 +33,11 @@ module Exchange
       #
       def initialize url, options={}, &block
         Exchange::GemLoader.new(options[:format] == :xml ? 'nokogiri' : 'json').try_load
-                
+
+        puts "Start. *******"
+
         result = cache_config.subclass.cached(options[:api] || config.subclass, options) do
+          puts "cache miss. *******"
           load_url(url, options[:retries] || config.retries, options[:retry_with])
         end
         
