@@ -39,7 +39,15 @@ module Exchange
         end
         
         parsed = options[:format] == :xml ? Nokogiri::XML.parse(result.sub("\n", '')) : ::JSON.load(result)
-        
+
+        puts "result. *******"
+        p result
+        puts "parsed. *******"
+        p parsed
+        puts "parsed['base']. *******"
+        p parsed['base']
+        puts "Fin. *******"
+
         return parsed unless block_given?
         yield  parsed
       end
@@ -60,6 +68,7 @@ module Exchange
             http.open_timeout = timeout
             http.read_timeout = timeout
             # TODO: investigate whether or not to account for 301 redirects
+            puts "load_url: http.get(#{uri.path}?#{uri.query})"
             result = http.get("#{uri.path}?#{uri.query}").body
           rescue SocketError
             raise APIError.new("Calling API #{url} produced a socket error")
