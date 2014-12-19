@@ -72,12 +72,14 @@ module Exchange
             http.read_timeout = timeout
             # TODO: investigate whether or not to account for 301 redirects
             puts "load_url: http.get(#{uri.path}?#{uri.query})"
-            result = http.get("#{uri.path}?#{uri.query}").body
+            response = http.get("#{uri.path}?#{uri.query}")
+            response.value # Will throw Net::HTTPServerException if an error code is returned
+            result = response.body
           rescue SocketError
             raise APIError.new("Calling API #{url} produced a socket error")
           rescue Timeout::Error => e
             raise APIError.new("API #{url} took too long to respond and returned #{e.message}")
-          rescue OpenURI::HTTPError => e
+          rescue Net::HTTPServerException => e
             retries -= 1
             if retries > 0
               url = retry_with.shift if retry_with && !retry_with.empty?
