@@ -1,14 +1,14 @@
 # -*- encoding : utf-8 -*-
 module Exchange
   module ExternalAPI
-    
+
     # A class to handle API calls in a standardized way for all APIs
     # @author Beat Richartz
     # @version 0.1
     # @since 0.1
     #
     class Call < Base
-      
+
       # Initialization of the Call class is the call itself. This means that every instance of the class will only exist during the call
       # @param [String] url The url of the API to call
       # @param [Hash] options The options of the API call
@@ -40,8 +40,17 @@ module Exchange
           puts "cache miss. *******"
           load_url(url, options[:retries] || config.retries, options[:retry_with])
         end
-        
-        parsed = options[:format] == :xml ? Nokogiri::XML.parse(result.sub("\n", '')) : ::JSON.load(result)
+
+        # jrkw temporary hacks for when xml is returned from fallback, but we expect open exchange rates json
+        # this should be properly resolved through caching Xavier results as that, instead of still OpenExchangeRate
+        is_xml_format = options[:format] == :xml || result.match(/<\?xml/) != nil
+        parsed = is_xml_format ? Nokogiri::XML.parse(result.sub("\n", '')) : ::JSON.load(result)
+        if is_xml_format && options[:format] != :xml
+          array = parsed.css('fx currency_code').children.map{|c| c.to_s }.zip(result.css('fx rate').children.map{|c| BigDecimal.new(c.to_s) }).flatten
+          timestamp = Time.gm(*parsed.css('fx_date').children[0].to_s.split('-')).to_i
+          base = parsed.css('basecurrency').children[0].to_s.downcase.to_sym
+          parsed = { 'rates' => Hash[*array], 'timestamp' => timestamp, 'base' => base, 'is_fallback' => true }
+        end
 
         puts "result. *******"
         p result
@@ -54,9 +63,9 @@ module Exchange
         return parsed unless block_given?
         yield  parsed
       end
-      
+
       private
-      
+
         # A helper function to load the API URL with
         # @param [String] url The url to be loaded
         # @param [Integer] retries The number of retries to do if the API Call should fail with a HTTP Error
@@ -92,12 +101,12 @@ module Exchange
           raise APIError.new("API #{url} returned a blank response") if result == ''
           result
         end
-      
+
     end
-    
+
     # The Api Error to throw when an API Call fails
     #
     APIError = Class.new Error
-    
+
   end
 end
