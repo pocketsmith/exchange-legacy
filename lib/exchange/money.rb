@@ -87,7 +87,7 @@ module Exchange
       other = ISO.assert_currency!(other)
 
       if api_supports_currency?(currency) && api_supports_currency?(other)
-        opts = { :at => time, :from => self }.merge(options)
+        opts = { :at => time, :from => self }.merge(options) unless opts
         Money.new(api.new.convert(value, currency, other, opts), other, opts)
       elsif fallback!
         to other, options
@@ -98,7 +98,12 @@ module Exchange
       if fallback!
         to other, options
       else
-        raise
+        offset = 0 if offset.nil? # Initial retry offset in days
+        raise if offset >= 5 # Max range (5 days)
+        offset += 1 # Increment offset
+        opts[:at] = opts[:at].advance(:days => -offset) # New time
+        puts "Retrying"
+        retry
       end
     end
     alias :in :to

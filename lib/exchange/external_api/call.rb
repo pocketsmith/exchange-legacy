@@ -34,10 +34,7 @@ module Exchange
       def initialize url, options={}, &block
         Exchange::GemLoader.new(options[:format] == :xml ? 'nokogiri' : 'json').try_load
 
-        puts "Start. *******"
-
         result = cache_config.subclass.cached(options[:api] || config.subclass, options) do
-          puts "cache miss. *******"
           load_url(url, options[:retries] || config.retries, options[:retry_with])
         end
 
@@ -51,14 +48,6 @@ module Exchange
           base = parsed.css('basecurrency').children[0].to_s.downcase.to_sym
           parsed = { 'rates' => Hash[*array], 'timestamp' => timestamp, 'base' => base, 'is_fallback' => true }
         end
-
-        puts "result. *******"
-        p result
-        puts "parsed. *******"
-        p parsed
-        puts "parsed['base']. *******"
-        p parsed['base']
-        puts "Fin. *******"
 
         return parsed unless block_given?
         yield  parsed
@@ -79,8 +68,6 @@ module Exchange
             http = Net::HTTP.new(uri.host, uri.port)
             http.open_timeout = timeout
             http.read_timeout = timeout
-            # TODO: investigate whether or not to account for 301 redirects
-            puts "load_url: http.get(#{uri.path}?#{uri.query})"
             response = http.get("#{uri.path}?#{uri.query}")
             response.value # Will throw Net::HTTPServerException if an error code is returned
             result = response.body
@@ -88,7 +75,7 @@ module Exchange
             raise APIError.new("Calling API #{url} produced a socket error")
           rescue Timeout::Error => e
             raise APIError.new("API #{url} took too long to respond and returned #{e.message}")
-          rescue Net::HTTPServerException => e
+          rescue Net::HTTPServerException => e # Try fallback APIs instead (if any)
             retries -= 1
             if retries > 0
               url = retry_with.shift if retry_with && !retry_with.empty?
@@ -99,6 +86,13 @@ module Exchange
           end
           # Handle empty responses
           raise APIError.new("API #{url} returned a blank response") if result == ''
+          # Handle other bad responses - covers any response where the rates cannot be determined
+          begin
+            usd_rate = JSON.load(result)['rates']['USD']
+            raise "No rate for USD" unless usd_rate.is_a?(Numeric) # Overkill perhaps?
+          rescue
+            raise APIError.new("API #{url} returned a bad response")
+          end
           result
         end
 
