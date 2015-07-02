@@ -841,7 +841,7 @@ CUC:
     major: ','
     minor: '.'
   minor_unit: 2
-  currency: Peso Convertible
+  currency: Cuban Convertible Peso
   symbol:
 PAB:
   minor_unit: 2
@@ -924,6 +924,14 @@ XAG:
 XAU:
   minor_unit: 2
   currency: Gold
+  symbol: oz
+XPT:
+  minor_unit: 2
+  currency: Platinum
+  symbol: oz
+XPD:
+  minor_unit: 2
+  currency: Palladium
   symbol: oz
 GGP:
   minor_unit: 2
