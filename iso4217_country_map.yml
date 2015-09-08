@@ -47,8 +47,8 @@ BM: :bmd
 BMU: :bmd
 BT: :btn
 BTN: :btn
-BO: :bov
-BOL: :bov
+BO: :bob
+BOL: :bob
 BQ: :usd
 BES: :usd
 BA: :bam
@@ -91,8 +91,8 @@ CX: :aud
 CXR: :aud
 CC: :aud
 CCK: :aud
-CO: :cou
-COL: :cou
+CO: :cop
+COL: :cop
 KM: :kmf
 COM: :kmf
 CG: :xaf
