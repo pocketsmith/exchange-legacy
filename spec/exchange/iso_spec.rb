@@ -79,7 +79,7 @@ describe "Exchange::ISO" do
         :pyg=>{:minor_unit=>0, :currency=>"Guarani", :symbol=>"Gs"}, 
         :lbp=>{:separators=>{:major=>" ", :minor=>"."}, :minor_unit=>2, :currency=>"Lebanese Pound", :symbol=>"£"}, 
         :ang=>{:separators=>{:major=>".", :minor=>","}, :minor_unit=>2, :currency=>"Netherlands Antillean Guilder", :symbol=>"ƒ"}, 
-        :kzt=>{:minor_unit=>2, :currency=>"Tenge", :symbol=>"лв"}, 
+        :kzt=>{:minor_unit=>2, :currency=>"Tenge", :symbol=>"₸"}, 
         :gyd=>{:minor_unit=>2, :currency=>"Guyana Dollar", :symbol=>"$"}, 
         :wst=>{:minor_unit=>2, :currency=>"Tala", :symbol=>nil}, 
         :npr=>{:separators=>{:major=>",", :minor=>"."}, :minor_unit=>2, :currency=>"Nepalese Rupee", :symbol=>"₨"}, 
